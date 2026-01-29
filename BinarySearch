@@ -1,0 +1,107 @@
+
+// LC 35
+public int searchInsert(int[] nums, int target) {
+        // basically find the first idx that nums[idx] >= target
+        // 1. define interval [left, right] to be the search space
+        // int left = 0;
+        // int right = nums.length; 
+        // while (left < right) {
+        //     int mid = left + (right - left) / 2; 
+        //     if (nums[mid] < target) { // we must remove all [left, mid]
+        //         left = mid + 1;
+        //     } else { // mid might be the ans, we set right to mid
+        //         right = mid;
+        //     }
+        // }
+        // test cases - {1} - 1; {1} - 2; {1, 2, 2} - 2
+        int left = 0;
+        int right = nums.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2; 
+            if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1; // note, result must be right + 1
+            }
+        }
+        return right + 1;
+    }
+
+// LC 34 
+public static int[] findIdx(int[] nums, int target) {
+        // we need to use binary search twice
+        int[] res = {-1, -1};
+        // corner case
+        if (nums == null || nums.length == 0) {
+            return res;
+        }
+        // find first idx
+        // search space must be inside [0, nums.length - 1]
+        int left = 0;
+        int right = nums.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] >= target) {
+                right = mid - 1; // note 'right + 1' might be the answer. 
+            } else {
+                left = mid + 1; // might also be answer
+            }
+        }
+        // breaking situation: left = right + 1 -> crossover
+        // [2, 2] - 2
+        if (right <= nums.length - 2 && nums[right + 1] == target) {
+            res[0] = right + 1; 
+        }
+        // find last idx
+        left = 0;
+        right = nums.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] <= target) {
+                left = mid + 1; // note left - 1 might be the ans
+            } else {
+                right = mid - 1; // note right might be the ans
+            }
+        }
+        // breaking sitution: left = right + 1 -> crossover
+        // res[1] = left - 1 or right
+        if (right >= 0 && nums[right] == target) {
+            res[1] = right; 
+        }
+        return res;
+    }
+
+// LC 33
+public static void main(String[] args) {
+        System.out.println(searchRotated(new int[]{3, 1}, 1));
+    }
+    // [4, 5, 6, 0, 1, 2, 3] - 0
+    public static int searchRotated(int[] nums, int target) {
+        // corner case
+        if (nums == null || nums.length == 0) {
+            return -1;
+        }
+        int left = 0;
+        int right = nums.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            // key step : find out the sorted section from [left, mid] and [mid, right]
+            if (nums[mid] == target) { // done
+                return mid;
+            }
+            if (nums[mid] >= nums[left] && nums[left] > nums[right]) { // [left, mid] is sorted
+                if (nums[mid] > target && target >= nums[left]) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                } 
+            } else { // [left, mid] is in the rotated region, so we are sure that [mid, right] is sorted
+                if (nums[mid] < target && target <= nums[right]) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+        }
+        return -1;
+    }
