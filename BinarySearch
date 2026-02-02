@@ -105,3 +105,36 @@ public static void main(String[] args) {
         }
         return -1;
     }
+
+// lC 875
+    public int minEatingSpeed(int[] piles, int h) {
+        int max = 0;
+        for (int i : piles) {
+            if (i > max) {
+                max = i;
+            }
+        }
+        int left = 1;
+        int right = max;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (valid(h, mid, piles)) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return right + 1;
+    }   
+    private boolean valid(int h, int k, int[] piles) {
+        long res = 0;
+        for (int i : piles) {
+            long ans = i / k;
+            int r = i % k;
+            if (r != 0) {
+                ans++;
+            }
+            res += ans;
+        }
+        return res <= h; 
+    }
