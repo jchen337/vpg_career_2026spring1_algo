@@ -1,0 +1,177 @@
+import java.util.PriorityQueue;
+
+public class Main {
+    // singly(doubly) linked list
+    public static void main(String[] args) {
+        ListNode a = new ListNode(1);
+        ListNode b = new ListNode(3);
+        ListNode f = new ListNode(2);
+        ListNode c = new ListNode(5);
+        ListNode d = new ListNode(4);
+        ListNode e = new ListNode(6);
+        // ListNode d = new ListNode(4);
+        a.next = b;
+        f.next = c;
+        d.next = e;
+        ListNode[] lists = {a, f, d};
+        ListNode newHead = mergeK(lists);
+        while (newHead != null) {
+            System.out.println(newHead.val);
+            newHead = newHead.next;
+        }
+    }
+
+    // merge sort
+    // say we have an array [[4, 7], [1, 8], [3, 9], [0, 5]] - > [0, 1, 3, 4, 5, 7, 8, 9]
+    // Divide and Conquer Algos
+    // 1. Divide - divide the whole problem into halves until we hit the base case
+    // 2. Conquer - solve each base case problems and store the answers
+    // 3. Combine - combine all answers from smaller problem sizes, we get the final answer
+
+    // merge k lists - Hard - iterative
+    public static ListNode mergeK(ListNode[] lists) {
+        if (lists == null || lists.length == 0) {
+            return null;
+        }
+        // iterative, use a heap/priority queue
+        PriorityQueue<ListNode> heap = new PriorityQueue<ListNode>((a, b) -> a.val - b.val);
+        // put all linkedLists(head) to the heap
+        for (ListNode l : lists) {
+            if (l != null) {
+                heap.offer(l);
+            }
+        }
+        ListNode dummy = new ListNode(-1);
+        ListNode curr = dummy;
+        while (!heap.isEmpty()) {
+            ListNode min = heap.poll(); // we take the minimum node out
+            curr.next = min;
+            curr = curr.next;
+            min = min.next;
+            if (min != null) {
+                heap.offer(min);
+            }
+        }
+        return dummy.next;
+    }
+
+    // recursive method
+    public static ListNode merge2(ListNode a, ListNode b) {
+        // base case
+        if (a == null || b == null) {
+            return a == null ? b : a;
+        }
+        // recursive case
+        if (a.val <= b.val) {
+            a.next = merge2(a.next, b); // when the last method returned, 1 -> [2, 3, 4]
+            //  visualized method-call stack in visual memory - OS basics
+            //  
+            //  merge2(returned , [4]) - not returned -> [4]
+            //  merge2([3], [4]) - not returned -> [3 -> 4]
+            //  merge2([3], [2, 4]) - not returned -> [2 -> 3 -> 4]
+            //  merge2([1, 3], [2, 4]) - not returned -> 1 -> [2, 3, 4]
+            return a;
+        } else {
+            b.next = merge2(a, b.next);
+            return b;
+        }
+    }
+
+    public static ListNode rmvDuplicate1(ListNode head) {
+        // say we have initial list [1 -> 1 -> 2 - > null]
+        // we need to return [2]
+        // thought: start from curr, find the next different node, and set curr.next = next
+        if (head == null || head.next == null) {
+            return head;
+        }
+        // now we need a dummy node
+        ListNode dummy = new ListNode(-1);
+        ListNode prev = dummy; // prev points to the 'last-validated unique node'
+        ListNode curr = head;
+        while (curr != null) {
+            ListNode next = curr.next;
+            // find the first node that is different from curr
+            // 'next' pointer is the next node which is different from curr
+            while (next != null && next.val == curr.val) {
+                next = next.next;
+            }
+            // now, next.val != null || next == null
+            if (curr.next == next) { // key point: only now we've verified 'curr' is unique
+                prev.next = curr;
+                prev = prev.next;
+            }
+            curr = next;
+        }
+        return dummy.next;
+    }
+
+    public static ListNode rmvDuplicates(ListNode head) {
+        // say we have initial list [1 -> 1 -> 2 - > null]
+        // we need to return [1 -> 2]
+        // thought: start from curr, find the next different node, and set curr.next = next
+        if (head == null || head.next == null) {
+            return head;
+        }
+        // do we need a dummy? dummy serves as place-holder, but is extra-space
+        // [2 -> 1 -> 1]
+        ListNode curr = head; // curr is the most-updated unique node
+        while (curr != null) {
+            ListNode next = curr.next; 
+            // find the next different node from curr
+            while (next != null && next.val == curr.val) {
+                next = next.next;
+            }
+            // now we've found 'next', 'next' is either a different node or null
+            curr.next = next;
+            curr = curr.next;
+        }
+        return head;
+    }
+
+    // follow up: can we do it recursively? 
+    public static ListNode reverse1(ListNode head) {
+        // say we have initial list [1 -> 2 -> 3 - > null]
+        // [1, 2, 3]
+        if (head == null || head.next == null) {
+            return head; // first time return 3
+        }
+        // recursive case
+        ListNode next = head.next;
+        ListNode newHead = reverse1(next); // 3 is the head of the lasted returned 'head' of the CALL STACK. 3 is the next of the current method. 
+        next.next = head; // 3 -> 2; 2 -> 1
+        head.next = null; // crucial part, 2 -> null; 1 -> null
+        return newHead; // note that newHead never changes, always points to 3
+    }
+
+    // return the head of the reversed linked list. 
+    // iterative
+    public static ListNode reverse(ListNode head) {
+        // say we have initial list [1 -> 2 -> 3 - > null]
+        // result should be 3 -> 2 -> 1 - null
+        if (head == null || head.next == null) {
+            return head;
+        }
+        // we at least need two pointers ? - next & curr & ?
+        ListNode next = head;
+        ListNode curr = null;
+        ListNode prev = curr; // store what curr previously points to
+        while (next != null) {
+            curr = next;
+            next = next.next; // key point: before we set the next pointer of next, we need to increment next. 
+            curr.next = prev; // this step actually does the reverse work. 
+            prev = curr;
+        }
+        return curr;
+    }
+}
+class ListNode {
+        // fields
+        int val;
+        ListNode next;
+        ListNode prev;
+        public ListNode(int val) {
+            this.val = val;
+            next = null;
+            prev = null;
+        }
+    }
