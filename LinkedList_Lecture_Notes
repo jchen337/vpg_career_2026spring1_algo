@@ -102,6 +102,7 @@ public class Main {
             }
             curr = next;
         }
+        prev.next = null; // this is crucial as [1, 2, 2], prev will point to 1, the trailing duplicates are not removed yet. 
         return dummy.next;
     }
 
