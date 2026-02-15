@@ -1,0 +1,114 @@
+import java.util.*;
+public class Main {
+    public static void main(String[] args) {
+        // String[] strs = {"tea", "eat", "aet", "apple", "ppale", "abc"};
+        // System.out.println(groupAnagrams(strs));
+        int[] nums = {23, 2, 6, 4, 7};
+        System.out.println(check(nums, 6));
+    }
+
+    public static boolean check(int[] nums, int k) {
+        // [23, 2, 6, 4, 7] - 6
+        // 23 % 6 = 5
+        //  +3
+        // 26 % 6 = 2
+        //  +3
+        // 29 % 6 = 5 ! found a duplicate mod value
+        // [2, 4] - 6
+        // [6] - 6
+        int sum = 0;
+        Map<Integer, Integer> map = new HashMap<>();
+        // we need a place holder
+        // initialization
+        map.put(0, -1); 
+        for (int i = 0; i < nums.length; i++) {
+            sum += nums[i];
+            sum = sum % k; // why we do this? k = 6, [5, 11, 17, 23, 29, 35, 41] - 5
+            if (map.containsKey(sum)) {
+                if (i - map.get(sum) >= 2) {
+                    return true;
+                }
+            } else {
+                map.put(sum, i); // what is the max size of our map? 
+            }
+        }
+        return false;
+    }
+
+    public static int subArrSum(int[] nums, int k) {
+        // brute-force? 
+        // find out all possible sub arrays whose sum equal to k
+        // [1, 2, 3] - 8 ways - 2 ^ n
+        // [1, 2, 3] - 3
+        // [3] - 3
+        // [1, 6, 2, 3, 7, 8] LIS - 5, LISA - 4
+//         这一题我们要使用running sum的技巧，比如k = 20，当前的sum = 50，我们就要找到从第一个index到当前index(之前)的区间里面有多少个sum - k，也就是找到有多少个30
+// 这一题里，我们的key是sum, value是sum的个数
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(0, 1); // serves place holder
+        int res = 0;
+        int sum = 0; // running sum
+        for (int i : nums) {
+            sum += i;
+            int numOfSum_K = map.getOrDefault(sum - k, 0); // key step
+            res += numOfSum_K;
+            map.put(sum, map.getOrDefault(sum, 0) + 1);
+        }
+        return res;
+    }
+
+    // group anagrams
+    // time complexity is O(N * M * log M)
+    public static List<List<String>> groupAnas(String[] strs) {
+        List<List<String>> res = new ArrayList<>();
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            String formatted = format(s);
+            map.putIfAbsent(formatted, new ArrayList<>());
+            List<String> list = map.get(formatted);
+            list.add(s); 
+            map.put(formatted, list); // thread-safe
+            // StringBuilder vs StringBuffer
+        }
+        res.addAll(map.values());
+        return res;
+    }
+
+    // how to build up our hash function? 
+    // ["tea", "eat", "tae"] -> "aet"
+    public static String format(String s) {
+        char[] c = s.toCharArray();
+        Arrays.sort(c); // now c is sorted
+        String str = new String(c);
+        return str;
+    }
+
+    // assume we have strs consisted of [a - z] only
+    // for any strings, we are able to write it in this format: 
+    // a?b?c?d?...z?
+    // [0, 1, 2....25]
+    // int[] count [0, 0, 0.... 0], "apple", [1...1.....1....2] -unique string key
+
+    // O(N * M)
+    public static List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            int[] count = new int[26];
+            for (char c : s.toCharArray()) {
+                count[c - 'a']++; // 'a' - 'a' == 0; 'z' - 'a' == 25
+            }
+            StringBuilder key = new StringBuilder();
+            for (int num : count) {
+                key.append(num).append("#"); // 10#0 vs 1#0#0 
+            }
+            System.out.println(key.toString());
+            // StringBuilder().toString()
+            List<String> curr = map.getOrDefault(key.toString(), new ArrayList<>());
+            curr.add(s);
+            map.put(key.toString(), curr);
+        }
+        List<List<String>> res = new ArrayList<>();
+        res.addAll(map.values());
+        return res;
+    }
+}
