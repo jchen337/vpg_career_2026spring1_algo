@@ -1,0 +1,203 @@
+import java.util.*;
+class ListNode {
+    int val;
+    ListNode next;
+    public ListNode(int val) {
+        this.val = val;
+        this.next = null;
+    }
+}
+
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    public TreeNode(int val) {
+        this.val = val;
+        this.left = null;
+        this.right = null;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // int[] height = {1, 8, 6, 2, 5, 4, 8, 3, 7};
+        // System.out.println(maxArea(height));
+        // ListNode a = new ListNode(1);
+        // a.next = new ListNode(2);
+        // a.next.next = new ListNode(3);
+        // a.next.next.next = new ListNode(2);
+        // a.next.next.next.next = new ListNode(1);
+        // int[] nums = {-3, -2, -1, 0, 1, 2, 3};
+        int[] nums = {0, 0, 0, 0, 0};
+        System.out.println(fourSum(nums, 0));
+    }
+
+    // 4 sum
+    public static List<List<Integer>> fourSum(int[] nums, int target) {
+        // brute-force -> C(N, 4) = N ^ 4
+        // we improve it to O(N^3)
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        for (int l = 0; l < nums.length - 3; l++) { // specify left range
+            // early stop & de-dup
+            if (4 * nums[l] > target) {
+                return res;
+            }
+            if (l > 0 && nums[l] == nums[l - 1]) {
+                continue;
+            }
+            for (int r = nums.length - 1; r >= 3 + l; r--) { // specify right range
+                if (4 * nums[r] < target) {
+                    break; // return res
+                }
+                if (r < nums.length - 1 && nums[r] == nums[r + 1]) {
+                    continue;
+                }   
+                // 2-pointers
+                int s = l + 1;
+                int e = r - 1;
+                while (s < e) {
+                    int ans = nums[l] + nums[s] + nums[e] + nums[r];
+                    if (ans == target) {
+                        List<Integer> list = Arrays.asList(nums[l], nums[s], nums[e], nums[r]);
+                        res.add(list);
+                        while (s < e && nums[s] == nums[s + 1]) { // de-dup for start
+                            s++;
+                        }
+                        s++;
+                        while (s < e && nums[e] == nums[e - 1]) { // de-dup for end
+                            e--;
+                        }
+                        e--;
+                    } else if (ans < target) {
+                        while (s < e && nums[s] == nums[s + 1]) { // de-dup for start
+                            s++;
+                        }
+                        s++;
+                    } else {
+                        while (s < e && nums[e] == nums[e - 1]) { // de-dup for end
+                            e--;
+                        }
+                        e--;
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    // 3 sum
+    public static List<List<Integer>> threeSum(int[] nums){
+        // brute-force?
+        // C(N, 3) = n(n - 1)(n - 2) / 6
+        // 3 for loops, time complexity is O(N ^ 3)
+        // say we have nums = [-1, 0, 1, 2, -1, -4]
+        // what about we sort the input array
+        // nums[-4, -1, -1, 0, 1, 2]
+        Arrays.sort(nums); // nlogn
+        // n * logn + n^2 = n^2
+        List<List<Integer>> res = new ArrayList<>();
+        for (int l = 0; l < nums.length - 2; l++) { // first, confirm left's range
+            // de-dup operation
+            if (nums[l] > 0) {
+                return res; // break
+            }
+            if (l < nums.length - 3 && nums[l] == nums[l - 1]) {
+                continue;
+            }
+            int s = l + 1;
+            int e = nums.length - 1;
+            while (s < e) {
+                int num = nums[l] + nums[s] + nums[e];
+                if (num == 0) {
+                    List<Integer> list = Arrays.asList(nums[l], nums[s], nums[e]);
+                    res.add(list);
+                    while (s < e && nums[s] == nums[s + 1]) { // de-dup for start
+                        s++;
+                    }
+                    s++;
+                    while (s < e && nums[e] == nums[e - 1]) { // de-dup for end
+                        e--;
+                    }
+                    e--;
+                } else if (num > 0) { // we move left to search for smaller answers
+                    while (s < e && nums[e] == nums[e - 1]) { // de-dup for end
+                        e--;
+                    }
+                    e--;
+                } else {
+                    while (s < e && nums[s] == nums[s + 1]) { // de-dup for start
+                        s++;
+                    }
+                    s++;
+                }
+            }
+        }
+        return res;
+    }
+
+    // check is a linked list is palindrome
+    public static boolean isPalin(ListNode head) {
+        // corner case
+        if (head == null || head.next == null) {
+            return true;
+        }
+        // say we have 1, 2, 3, 4, 5
+        // now we need to find mid, how? 
+        ListNode slow = head;
+        ListNode fast = head;
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next; // note here fast.next cannot be null
+            slow = slow.next;
+        }
+        // now we have fast = 5, slow is 3
+        ListNode mid = slow;
+        if (fast != null) {
+            mid = slow.next;
+        } 
+        // now we have mid = 4, we reverse it
+        mid = reverse(mid);
+        // now, we have mid = [5, 4]
+        fast = head;
+        while (mid != null) {
+            if (fast.val != mid.val) {
+                return false;
+            }
+            fast = fast.next;
+            mid = mid.next;
+        }
+        return true;
+    }
+
+    // helper reverse function
+    public static ListNode reverse(ListNode head) {
+        // 1. base case
+        if (head == null || head.next == null) {
+            return head;
+        }
+        ListNode next = head.next;
+        ListNode newHead = reverse(next);
+        next.next = head;
+        head.next = null;
+        return newHead;
+    }
+
+    // container with most water
+    public static int maxArea(int[] height) {
+        // assume height is always valid
+        int left = 0;
+        int right = height.length - 1;
+        int maxSize = 0;
+        while (left < right) {
+            if (height[left] <= height[right]) {
+                maxSize = Math.max(maxSize, height[left] * (right - left));
+                left++;
+            } else {
+                maxSize = Math.max(maxSize, height[right] * (right - left));
+                right--;
+            }
+        }
+        return maxSize;
+    }
+}
