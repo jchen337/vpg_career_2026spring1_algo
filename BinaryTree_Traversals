@@ -1,0 +1,229 @@
+import java.util.*;
+class TreeNode {
+    // fields
+    int val;
+    TreeNode left;
+    TreeNode right;
+    // constructor
+    public TreeNode(int val) {
+        this.val = val;
+        left = null;
+        right = null;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        //            1
+        //         2     3
+        //       4  5   6  7
+        //  think about the recursive method call stack in memory
+        TreeNode root = new TreeNode(1);
+        root.left = new TreeNode(2);
+        root.right = new TreeNode(3);
+        root.left.left = new TreeNode(4);
+        root.left.right = new TreeNode(5);
+        root.right.left = new TreeNode(6);
+        root.right.right = new TreeNode(7);
+        // System.out.println(levelorder(root));
+        // 
+        // List<Integer> list = new ArrayList<>(); // the real list(object)stored in heap
+        // list.add(1);
+        // list.add(2);
+        // System.out.println(list);
+        // change(list);
+        // System.out.println(list);
+        System.out.println(levelorder_rec(root));
+    }
+
+    // pass by value/reference
+    public static void change(List<Integer> list) {
+        list.remove(0);
+    }
+
+    // 1. pre-order recursive method
+    public static List<Integer> preorder_rec(TreeNode root) {
+        List<Integer> res = new ArrayList<>(); // heap(objects) vs. stack(method calls, primitive types, variable names)
+        if (root == null) {
+            return res;
+        }   
+        pre_rec(root, res);
+        return res;
+    }
+
+    // helper function for pre-order recursive method
+    public static void pre_rec(TreeNode root, List<Integer> res) {
+        // 1. base case
+        if (root == null) {
+            return;
+        }
+        // 2. recursion case
+        // preorder, always visit root first
+        res.add(root.val); // visited
+        System.out.println(res);
+        // next, we visit left tree
+        pre_rec(root.left, res);
+        // last, we visit right tree
+        pre_rec(root.right, res);
+    }
+
+    // iterative method for preorder
+    //            1
+    //         2     3
+    //       4  5   6  7
+    public static List<Integer> preorder_itr(TreeNode root) {
+        List<Integer> res = new ArrayList<>(); 
+        if (root == null) {
+            return res;
+        }   
+        LinkedList<TreeNode> stack = new LinkedList<>();
+        stack.push(root); // [1]
+        while (!stack.isEmpty()) {
+            TreeNode curRoot = stack.pop();
+            res.add(curRoot.val);
+            // key step
+            if (curRoot.right != null) {
+                stack.push(curRoot.right);
+            }
+            if (curRoot.left != null) {
+                stack.push(curRoot.left);
+            }
+        }
+        return res;
+    }
+
+    // 2. in-order traversal using recursion
+    public static List<Integer> inorder_rec(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }   
+        in_rec(root, res);
+        return res;
+    }
+
+    // helper function for in-order traversal using recursion
+    public static void in_rec(TreeNode root, List<Integer> res) {
+        // 1. base case
+        if (root == null) {
+            return;
+        }
+        // 2. recursion case
+        // first, we visit left tree
+        in_rec(root.left, res); // recursive method call not returned yet, on stack in the memory
+        // next, we visit the root
+        res.add(root.val); // visited the root
+        // last, we visit right tree
+        in_rec(root.right, res);
+    }
+
+    // iterative method for inorder traversal
+    public static List<Integer> inorder_itr(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }   
+        LinkedList<TreeNode> stack = new LinkedList<>();
+    //            1
+    //         2     3
+    //       4  5   6  7
+        TreeNode curRoot = root;
+        while (!stack.isEmpty() || curRoot != null) {
+            while (curRoot != null) {
+                stack.push(curRoot);
+                curRoot = curRoot.left;
+            }
+            // stack [4, 2, 1] -> [2, 1]
+            curRoot = stack.pop(); // left-most TreeNode, the one to visit
+            res.add(curRoot.val);
+            // [2, 1] -> [1]
+            curRoot = curRoot.right;
+        }
+        return res;
+    }
+
+    // 3. post-order traversal using recursion
+    public static List<Integer> postorder_rec(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }   
+        post_rec(root, res);
+        return res;
+    }
+
+    // helper function for post-order traversal using recursion
+    public static void post_rec(TreeNode root, List<Integer> res) {
+        // 1. base case
+        if (root == null) {
+            return;
+        }
+        // 2. recursion case
+        // first, we visit left tree
+        post_rec(root.left, res);
+        // next, we visit the right root
+        post_rec(root.right, res);
+        // last, we visit the root
+        res.add(root.val);
+    }
+
+    // 3. iterative method for level order traversal
+    // for example, we return [[1], [2, 3], [4, 5, 6, 7]]
+    public static List<List<Integer>> levelorder(TreeNode root) {
+        // BFS
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }
+        LinkedList<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        // we do a standard BFS
+        // boolean odd = true; // used for a follow-up question: zigzag order
+        while (!queue.isEmpty()) {
+            // get the current length of the queue
+            int len = queue.size();
+            // we are sure that all existing nodes in the queue are on the same level
+            List<Integer> temp = new ArrayList<>();
+            for (int i = 0; i < len; i++) {
+                TreeNode curr = queue.poll();
+                temp.add(curr.val);
+                if (curr.left != null) {
+                    queue.offer(curr.left);
+                }
+                if (curr.right != null) {
+                    queue.offer(curr.right);
+                }
+            }
+            res.add(new ArrayList<>(temp));
+            // odd = !odd;
+        }
+        return res;
+    }
+
+    // recursive method for level order
+    //            1
+    //         2     3
+    //       4  5   6  7
+    public static List<List<Integer>> levelorder_rec(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        helper_level(res, 0, root);
+        return res;
+    }
+
+    public static void helper_level(List<List<Integer>> res, int currDepth, TreeNode root) {
+        // DFS - recursion
+        // 1. base case
+        if (root == null) {
+            return;
+        }
+        // another base case is very subtle
+        // think about the connection between 'size of res' and 'level'
+        if (currDepth >= res.size()) {
+            res.add(new ArrayList<>());
+        }
+        // do the real work here
+        // add the root.val to the res
+        res.get(currDepth).add(root.val);
+        helper_level(res, currDepth + 1, root.left);
+        helper_level(res, currDepth + 1, root.right);
+    }
+}
