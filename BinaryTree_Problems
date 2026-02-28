@@ -1,0 +1,229 @@
+import java.util.*;
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    public TreeNode(int val) {
+        this.val = val;
+        left = null;
+        right = null;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+         //            1
+        //         2     3
+        //       4  5   6  7
+        // previous = null       
+        TreeNode root = new TreeNode(1);
+        root.left = new TreeNode(2);
+        root.right = new TreeNode(3);
+        root.left.left = new TreeNode(4);
+        root.left.right = new TreeNode(5);
+        root.right.left = new TreeNode(6);
+        root.right.right = new TreeNode(7);
+        root.right.right.left = new TreeNode(8);
+        root.right.right.left.right = new TreeNode(10);
+        // System.out.println(isValidBST_follow_2(root));
+        System.out.println(maxDepth(root));
+        // [1, 2, 3, 4, 5]
+        // height-balanced -> difference between each subtree of any nodes is no larger than 1
+        int[] nums = {1, 2, 3, 4, 5};
+        TreeNode rt = sortedArrayToBST(nums);
+        System.out.println(rightSideView(root));
+        //.    3
+        //   1    4
+        //    2      5
+        
+    }
+
+    // LCA
+    public static TreeNode LCA(TreeNode root, TreeNode p, TreeNode q) {
+        // we use post order traversal
+        // 1. base case ?
+        if (root == null) {
+            return null; // could not find either p or q
+        }
+        if (root == p) {
+            return root; // found p
+        }
+        if (root == q) {
+            return root; // found q
+        }
+        TreeNode left = LCA(root.left, p, q); 
+        TreeNode right = LCA(root.right, p, q); 
+        // we visit root
+        // if left and right both non-null -> we have found both p and q
+        if (left != null && right != null) {
+            return root; // LCA found!
+        }
+        if (left != null) { // left == q || left == p
+            return left;
+        }
+        return right;
+    }
+
+    // right side view -> what about left side view? 
+    public static List<Integer> rightSideView(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        helper(res, 0, root);
+        return res;
+    }
+
+    public static void helper(List<Integer> res, int currDepth, TreeNode root) {
+        if (root == null) {
+            return;
+        }
+        if (currDepth >= res.size()) {
+            res.add(root.val);
+        }
+        helper(res, currDepth + 1, root.right);
+        helper(res, currDepth + 1, root.left);
+    }
+
+    public static TreeNode sortedArrayToBST(int[] nums) {
+        // corner cases
+        // D & C
+        return helper(0, nums.length - 1, nums);
+    }
+
+    public static TreeNode helper(int start, int end, int[] nums) {
+        // 1. base case
+        if (start > end) {
+            return null;
+        }
+        if (start == end) {
+            return new TreeNode(nums[start]);
+        }
+        // create our root node, we decide to use the middle idx to be root
+        int mid = start + (end - start) / 2;
+        TreeNode root = new TreeNode(nums[mid]);
+        TreeNode left = helper(start, mid - 1, nums);
+        TreeNode right = helper(mid + 1, end, nums);
+        root.left = left;
+        root.right = right;
+        return root;
+    }
+
+    public static int maxDepth(TreeNode root) {
+        // method 1: level order traversal, return the size of res
+        // could we do it using post order? 
+        if (root == null) {
+            return 0;
+        }
+        int left = maxDepth(root.left); // left? 
+        int right = maxDepth(root.right); // right? 
+        int max = Math.max(left, right);
+        return 1 + max;
+    }
+
+    // follow up 1: can we do it using in order? 
+    // follow up 2: can we do it using in order? constant space? O(1)
+    // we use in order traversal, and we create a pointer called previous-visited node
+
+    public static boolean isValidBST(TreeNode root) {
+        // we need to specify max and min value
+        // root.val is in the range of [min int, max int]
+        return helper(root, null, null);
+    }
+
+    static TreeNode prev = null;
+    static int code = 1;
+    // implement the follow up 2 - constant space
+    public static boolean isValidBST_follow_2(TreeNode root) {
+        if (root == null) {
+            return true;
+        }
+        // isValidBST_follow_2(root.left);
+        // // now we visit root
+        // if (prev != null && prev.val >= root.val) {
+        //     return false;
+        // }
+        // prev = root;
+        // isValidBST_follow_2(root.right);
+        helper_2(root);
+        return code == 1;
+    }
+
+    // 
+    public static void helper_2(TreeNode root) {
+        if (root == null) {
+            return;
+        }
+        helper_2(root.left);
+        // now we visit root
+        if (prev != null && prev.val >= root.val) {
+            code = 0; // indicating false
+            return;
+        }
+        prev = root;
+        helper_2(root.right);
+    }
+
+    // implement the follow up 1
+    public static boolean isValidBST_follow_1(TreeNode root) {
+        // we need to specify max and min value
+        // root.val is in the range of [min int, max int]
+        List<Integer> res = inorder_rec(root);
+        for (int i = 1; i < res.size(); i++) {
+            if (res.get(i) <= res.get(i - 1)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static List<Integer> inorder_rec(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }   
+        in_rec(root, res);
+        return res;
+    }
+
+    public static void in_rec(TreeNode root, List<Integer> res) {
+        if (root == null) {
+            return;
+        }   
+        in_rec(root.left, res);
+        res.add(root.val); // O(1)
+        in_rec(root.right, res);
+    }
+
+    public static boolean helper(TreeNode root, Integer max, Integer min) {
+        // implement pre-order traversal
+        // 1. base case
+        if (root == null) {
+            return true;
+        }
+        if ((max != null && root.val >= max) || (min != null && root.val <= min)) {
+            return false;
+        }
+        return helper(root.left, root.val, min) && helper(root.right, max, root.val);
+    }
+    public static List<Integer> preorder_rec(TreeNode root) {
+        List<Integer> res = new ArrayList<>(); // heap(objects) vs. stack(method calls, primitive types, variable names)
+        if (root == null) {
+            return res;
+        }   
+        pre_rec(root, res);
+        return res;
+    }
+
+    // helper function for pre-order recursive method
+    public static void pre_rec(TreeNode root, List<Integer> res) {
+        // 1. base case
+        if (root == null) {
+            return;
+        }
+        // 2. recursion case
+        // preorder, always visit root first
+        res.add(root.val); // visited
+        System.out.println(res);
+        // next, we visit left tree
+        pre_rec(root.left, res);
+        // last, we visit right tree
+        pre_rec(root.right, res);
+    }
+}
