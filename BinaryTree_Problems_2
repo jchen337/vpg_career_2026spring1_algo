@@ -1,0 +1,172 @@
+import java.util.*;
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    public TreeNode(int val) {
+        this.val = val;
+        left = null;
+        right = null;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        //            1
+        //         2     3
+        //       4  5   6  7     
+        TreeNode root = new TreeNode(1);
+        root.left = new TreeNode(2);
+        root.right = new TreeNode(3);
+        root.left.left = new TreeNode(4);
+        root.left.right = new TreeNode(5);
+        root.right.left = new TreeNode(6);
+        root.right.right = new TreeNode(7);
+        // root.right.right.left = new TreeNode(8);
+        // root.right.right.left.right = new TreeNode(10);
+        int[] preorder = {1, 2, 4, 5, 3, 6, 7};
+        int[] inorder = {4, 2, 5, 1, 6, 3, 7};
+        TreeNode rt = buildTree(preorder, inorder);
+        // post order traversal should be {4, 5, 2, 6, 7, 3, 1}
+        System.out.println(postorder_rec(rt));
+
+    }
+
+    // 1. path sum
+    public static boolean hasPathSum(TreeNode root, int targetSum) {
+        if (root == null) {
+            return false;
+        }
+        return helper(root, 0, targetSum);
+    }
+
+    public static boolean helper(TreeNode root, int sum, int target) { // sum is the path sum including the current root
+        // 1. base case
+        if (root == null) {
+            return false;
+        }
+        sum += root.val;
+        if (root.left == null && root.right == null) { // we are sure this is leaf node
+            if (sum == target) {
+                return true;
+            } 
+        }
+        boolean left = helper(root.left, sum, target - root.val);
+        boolean right = helper(root.right, sum, target -root.val);
+        return left || right;
+    }
+
+    // 2. Path sum II
+    public static List<List<Integer>> pathSum(TreeNode root, int targetSum) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }
+        helper(root, res, 0, targetSum, new ArrayList<>());
+        return res;
+    }
+
+    public static void helper(TreeNode root, List<List<Integer>> res, int sum, int targetSum, List<Integer> curr) {
+        if (root == null) {
+            return;
+        }
+        sum += root.val;
+        curr.add(root.val);
+        if (root.left == null && root.right == null) { // when we are at leaves
+            if (sum == targetSum) {
+                List<Integer> list = new ArrayList<>(curr);
+                res.add(list);
+            }
+            curr.remove(curr.size() - 1); 
+            return;
+        }
+        helper(root.left, res, sum, targetSum, curr);
+        helper(root.right, res, sum, targetSum, curr);
+        curr.remove(curr.size() - 1);
+    }
+
+    // 3. max path sum of a binary tree
+    static int res = Integer.MIN_VALUE;
+    public static int maxPathSum(TreeNode root) {
+        // we want to construct a path upward till the current node
+        // what if, for the current root, we have already known the max path sum left side and right side? 
+        // we need a helper function to find out one-way upward max path sum
+        upwardMaxSum(root);
+        return res;
+    }
+
+    public static int upwardMaxSum(TreeNode root) { 
+        // we do a post order traversal because we need info from left and right subtrees
+        // [1, -2, 3, 4, -6] - find max subsequence sum - DP 
+        if (root == null) {
+            return 0;
+        }
+        int left = Math.max(0, upwardMaxSum(root.left)); // denotes max path sum from left subtree upward
+        int right = Math.max(0, upwardMaxSum(root.right)); // denotes max path sum from right subtree upward
+        // make sure both left and right have positive contribution to our result
+        // implementation for curr max path sum here: 
+        int currMax = root.val + left + right; // potentially max path sum(including root)
+        res = Math.max(res, currMax);
+        // implementation for upward max path sum here:
+        return Math.max(left, right) + root.val; // * can we return currMax here? no, because a path cannot be diverted
+    }
+
+    // build binary tree from preorder and inorder traversal
+    public static TreeNode buildTree(int[] preorder, int[] inorder) {
+        return helper(preorder, inorder, 0, 0, inorder.length - 1);
+    }
+
+    // D & C algo, we need 3 variables to track the current root and the size of its left and right subtrees
+    public static TreeNode helper(int[] preorder, int[] inorder, int preStart, int inStart, int inEnd) {
+        // 1. base case
+        if (preStart == preorder.length || inStart > inEnd) {
+            return null;
+        }
+        if (inStart == inEnd) {
+            return new TreeNode(inorder[inStart]);
+        }
+        // first, we locate and create our root node
+        TreeNode root = new TreeNode(preorder[preStart]); 
+        int idx = find(inorder, root.val);
+        // now we build the left subtree and right subtree recursively using D & C algos
+        TreeNode left = helper(preorder, inorder, preStart + 1, inStart, idx - 1); // * key of the question
+        TreeNode right = helper(preorder, inorder, preStart + (idx - inStart + 1), idx + 1, inEnd);
+        root.left = left;
+        root.right = right;
+        return root;
+    }
+
+    // helper method to locate the current root in inorder array
+    public static int find(int[] inorder, int target) {
+        int res = 0;
+        for (int i = 0; i < inorder.length; i++) {
+            if (inorder[i] == target) {
+                return i;
+            }
+        }
+        return res;
+    }
+
+    public static List<Integer> postorder_rec(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }   
+        post_rec(root, res);
+        return res;
+    }
+
+    // helper function for post-order traversal using recursion
+    public static void post_rec(TreeNode root, List<Integer> res) {
+        // 1. base case
+        if (root == null) {
+            return;
+        }
+        // 2. recursion case
+        // first, we visit left tree
+        post_rec(root.left, res);
+        // next, we visit the right root
+        post_rec(root.right, res);
+        // last, we visit the root
+        res.add(root.val);
+    }
+}
