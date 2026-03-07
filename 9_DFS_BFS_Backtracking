@@ -196,12 +196,12 @@ public class Main {
 
     public static List<List<Integer>> combinationSum_2(int[] candidates, int target) {
         List<List<Integer>> res = new ArrayList<>();
-        boolean[] used = new boolean[candidates.length];
-        backtrack_2(res, new ArrayList<>(), candidates, 0, target, 0, used);
+        Arrays.sort(candidates);
+        backtrack_2(res, new ArrayList<>(), candidates, 0, target, 0);
         return res;
     }
 
-    public static void backtrack_2(List<List<Integer>> res, List<Integer> path, int[] candidates, int currSum, int target, int index, boolean[] used) {
+    public static void backtrack_2(List<List<Integer>> res, List<Integer> path, int[] candidates, int currSum, int target, int index) {
         // 1. base case
         if (currSum == target) {
             res.add(new ArrayList<>(path));
@@ -214,19 +214,14 @@ public class Main {
             if (currSum + candidates[i] > target) {
                 continue;
             }
-            // if (i > index && candidates[i] == candidates[i - 1]) {
-            //     continue;
-            // }
-            if (used[i]) {
-                continue;    
+            if (i > index && candidates[i] == candidates[i - 1]) {
+                continue;
             }
-            used[i] = true;
             currSum += candidates[i]; // important, currSum is always valid
             path.add(candidates[i]);
-            backtrack_2(res, path, candidates, currSum, target, i + 1, used);
+            backtrack_2(res, path, candidates, currSum, target, i + 1);
             // backtrack!
             path.remove(path.size() - 1);
-            used[i] = false;
             currSum -= candidates[i];
         }
     }
