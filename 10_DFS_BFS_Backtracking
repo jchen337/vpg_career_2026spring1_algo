@@ -1,0 +1,210 @@
+import java.util.*;
+public class Main {
+    public static void main(String[] args) {
+        // System.out.println(combiSum3(3, 9));
+        // System.out.println(subsets_dup(new int[]{1, 2, 3, 4}));
+        char[][] grid = {{'X', 'X', 'X', 'X'},{'X', 'O', 'O', 'X'}, {'X', 'X', 'O', 'X'}, {'X', 'O', 'X', 'X'}};
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                System.out.print(grid[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("after capturing");
+        capture_BFS(grid);
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                System.out.print(grid[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    // 1. combination sum II - with duplicates
+    public static List<List<Integer>> combiSum2(int[] candidates, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        Arrays.sort(candidates); // sort the input array so that duplicates numbers are next to each other - better for de-duplicate later
+        helper(res, new ArrayList<>(), candidates, 0, target, 0);
+        return res;
+    }
+
+    // helper
+    // candidates = [10, 20, 30, 40, 40, 40, 50, 60]
+    // we are basically trying to find number of subsets - O(2 ^ N)
+    public static void helper(List<List<Integer>> res, List<Integer> list, int[] candidates, int currSum, int target, int level) {
+        // 1. base case
+        if (currSum == target) {
+            res.add(new ArrayList<>(list));
+            return;
+        }
+        // dfs and backtracking
+        for (int i = level; i < candidates.length; i++) {
+            // early stop
+            if (currSum + candidates[i] > target) {
+                return;
+            }
+            // de-duplications
+            if (i > level && candidates[i] == candidates[i - 1]) {
+                continue;
+            }
+            currSum += candidates[i];
+            list.add(candidates[i]);
+            helper(res, list, candidates, currSum, target, i + 1);
+            // backtracking
+            list.remove(list.size() - 1);
+            currSum -= candidates[i];
+        }
+    }
+
+    // 2. combiSum 3 
+    // find total number of combinations of 3 elements from 9 elements
+    // C(9, k) 
+    public static List<List<Integer>> combiSum3(int k, int n) {
+        List<List<Integer>> res = new ArrayList<>();
+        helper_2(res, new ArrayList<>(), n, 0, k, 1);
+        return res;
+    }
+
+    public static void helper_2(List<List<Integer>> res, List<Integer> list, int target, int currSum, int k, int level) {
+        // 1 base case
+        if (list.size() == k) {
+            if (currSum == target) {
+                res.add(new ArrayList<>(list));
+            }
+            return;
+        }
+        for (int i = level; i <= 9; i++) {
+            // early stop
+            if (currSum + i > target) {
+                return; 
+            }
+            currSum += i;
+            list.add(i); // make sure states/params are consistent
+            helper_2(res, list, target, currSum, k, i + 1);
+            list.remove(list.size() - 1);
+            currSum -= i;
+        }
+    }
+
+    // 3. find all subsets - all unique
+    public static List<List<Integer>> subsets(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        // res.add(new ArrayList<>()); // corner case, empty subset
+        helper_subsets(res, new ArrayList(), nums, 0);
+        return res;
+    }
+
+    public static void helper_subsets(List<List<Integer>> res, List<Integer> list, int[] nums, int level) {
+        // do we need a base case here? 
+        res.add(new ArrayList<>(list));
+        for (int i = level; i < nums.length; i++) {
+            list.add(nums[i]);
+            helper_subsets(res, list, nums, i + 1);
+            list.remove(list.size() - 1);
+        }
+    }
+
+    // 4. find all subsets - contain duplicates
+    public static List<List<Integer>> subsets_dup(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        Arrays.sort(nums);
+        helper_subsets_dup(res, new ArrayList(), nums, 0);
+        return res;
+    }
+
+    public static void helper_subsets_dup(List<List<Integer>> res, List<Integer> list, int[] nums, int level) {
+        res.add(new ArrayList<>(list));
+        for (int i = level; i < nums.length; i++) {
+            // nums = [1, 2, 2, 3]
+            if (i > level && nums[i] == nums[i - 1]) {
+                continue;
+            }
+            list.add(nums[i]); // [1]
+            helper_subsets_dup(res, list, nums, i + 1); 
+            // [1, 2, 3] 
+            list.remove(list.size() - 1); 
+        }
+    }
+
+    // 5. surrounded regions - DFS
+    public static void capture(char[][] grid) {
+        // find all 'O's from the boundaries, then do DFS to mark them as visited/'$'
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                if ((i == 0 || i == grid.length - 1 || j == 0 || j == grid[0].length - 1) && (grid[i][j] == 'O')) {
+                    helper_capture(i, j, grid);
+                }
+            }
+        }
+        // mark all '$' back to 'O' and mark all 'O' to 'X'
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                if (grid[i][j] == '$') {
+                    grid[i][j] = 'O';
+                } else if (grid[i][j] == 'O') {
+                    grid[i][j] = 'X';
+                }
+            }
+        }
+    }
+
+    // helper function for Q.5
+    public static void helper_capture(int i, int j, char[][] grid) {
+        if (i < 0 || i == grid.length || j < 0 || j == grid[0].length) {
+            return;
+        }
+        if (grid[i][j] != 'O') { // '$' or 'X'
+            return;
+        }
+        grid[i][j] = '$';
+        helper_capture(i + 1, j, grid);
+        helper_capture(i - 1, j, grid);
+        helper_capture(i, j + 1, grid);
+        helper_capture(i, j - 1, grid);
+    }
+
+    // follow up 5. surrounded regions - BFS
+    public static void capture_BFS(char[][] grid) {
+        LinkedList<Integer> queue = new LinkedList<>(); 
+        int m = grid.length; // 3
+        int n = grid[0].length; // 4
+        // X X X X
+        // X O O X
+        // X[2, 0] X O X
+        // for each [i, j] pair, we add i * N + j to the queue - 8
+        // 8 / 4, 8 % 4
+        // find all 'O's from the boundaries, then do BFS to mark them as visited/'$'
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                if ((i == 0 || i == grid.length - 1 || j == 0 || j == grid[0].length - 1) && (grid[i][j] == 'O')) {
+                    queue.offer(i * n + j);
+                }
+            }
+        }
+        // implement BFS to do the work
+        int[] directions = {0, 1, 0, -1, 0};
+        while (!queue.isEmpty()) {
+            int curr = queue.poll();
+            grid[curr / n][curr % n] = '$';
+            // visit all 4 directions
+            for (int d = 0; d < 4; d++) {
+                int x = curr / n + directions[d];
+                int y = curr % n + directions[d + 1];
+                if (x < 0 || x == m || y < 0 || y == n || grid[x][y] == 'X' || grid[x][y] == '$') {
+                    continue;
+                }
+                queue.offer(x * n + y);
+            }
+        }
+        // mark all '$' back to 'O' and mark all 'O' to 'X'
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                if (grid[i][j] == '$') {
+                    grid[i][j] = 'O';
+                } else if (grid[i][j] == 'O') {
+                    grid[i][j] = 'X';
+                }
+            }
+        }
+    }
+}
