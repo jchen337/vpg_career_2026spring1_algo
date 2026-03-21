@@ -1,0 +1,210 @@
+import java.util.*;
+class LRUCache {
+    // 1. create a doubly linked list
+    class Node {
+        int key;
+        int val;
+        Node prev;
+        Node next;
+        public Node(int key, int val) {
+            this.key = key;
+            this.val = val;
+            prev = null;
+            next = null;
+        }
+    }
+    Node head;
+    Node tail;
+    // 2. create a hash map
+    Map<Integer, Node> map;
+    int capacity;
+    // build the constructor
+    public LRUCache(int capacity) {
+        // data initialization
+        this.capacity = capacity;
+        head = new Node(-1, -1);
+        tail = new Node(-1, -1);
+        head.next = tail;
+        tail.prev = head;
+        map = new HashMap<>();
+    }
+
+    // 3. build required functions - get
+    public int get(int key) {
+        if (map.containsKey(key)) {
+            Node curr = map.get(key);
+            // key step!
+            // before we move to tail, do we need to do anything else? 
+            // -1 - 1 - [2] - 3 - -1
+            curr.prev.next = curr.next;
+            curr.next.prev = curr.prev;
+            // move to tail
+            moveToTail(curr);
+            return curr.val;
+        } else {
+            return -1;
+        }
+    }
+
+
+    // 4. build required functions - put
+    public void put(int key, int value) {
+        // two cases: existing or not
+        if (map.containsKey(key)) {
+            Node curr = map.get(key);
+            curr.val = value;
+            map.put(key, curr);
+            curr.prev.next = curr.next;
+            curr.next.prev = curr.prev;
+            // move to tail
+            moveToTail(curr);
+        } else { // - not existing
+            Node next = new Node(key, value);
+            // add to our map first
+            map.put(key, next);
+            moveToTail(next);
+            // check curr size vs. capacity
+            if (map.size() > this.capacity) { // we need to evist the LRU element
+                Node toRmv = head.next;
+                // remove from map
+                map.remove(toRmv.key);
+                // remove from doubly linked list
+                // -1 - 3 - 4 - 5 - -1
+                head.next = head.next.next;
+                head.next.prev = head;
+            }
+        }
+    }
+
+    // 5. move to tail function
+    // for example, 4 - 3 - 5 - 1 (6)
+    public void moveToTail(Node curr) {
+        tail.prev.next = curr; // 4 <-> 3 <-> 5 <-> 6 <-> 1 
+        curr.prev = tail.prev;
+        tail.prev = curr;
+        curr.next = tail;
+    }
+
+}
+class RandomizedSet {
+    Map<Integer, Integer> map;
+    List<Integer> list;
+    public RandomizedSet() {
+        map = new HashMap<>();
+        list = new ArrayList<>();
+    }
+
+    // implement 3 O(1) operations
+    // 1. insert
+    public boolean insert(int val) {
+        if (map.containsKey(val)) {
+            return false;
+        }
+        list.add(val);
+        map.put(val, list.size() - 1);
+        return true;
+    }
+
+    // 2. remove
+    public boolean remove(int val) {
+        if (!map.containsKey(val)) {
+            return false;
+        }
+        // 5 6 7 2 1, we need to remove 7
+        int rmvIndex = map.get(val); // rmvIndex = 2
+        // check whether rmvIndex is at the last position, only do the replacement if rmvIndex is not at the last position
+        if (rmvIndex != list.size() - 1) {
+            int valueToReplace = list.get(list.size() - 1); // 1
+            list.set(rmvIndex, valueToReplace); // 5 6 1 2 1
+            map.put(valueToReplace, rmvIndex);
+        }
+        map.remove(val);
+        list.remove(list.size() - 1);
+        return true;
+    }
+
+    // 3. getRandom
+    // randomly select an index from [0, list.size() - 1]
+    public int getRandom() {
+        // we use Math.random()
+        int idx = (int) (Math.random() * list.size());
+        return list.get(idx);
+    }
+}
+
+// min stack
+class MinStack {
+    int min;
+    LinkedList<Integer> stack;
+    public MinStack() {
+        this.min = Integer.MAX_VALUE;
+        this.stack = new LinkedList<>();
+    }
+
+    // 1. push
+    public void push(int val) {
+        if (val < this.min) {
+            this.min = val;
+        }
+        this.stack.push(this.min);
+        this.stack.push(val);
+    }
+    // 2. pop - key step
+    // this is the key step, because we need to update this.min if the popped elment is the current min
+    public void pop() {
+        int top = this.top();
+        stack.pop();
+        stack.pop();
+        if (top == this.min) {
+            if (stack.isEmpty()) { // everthing is clear, we start from scratch
+                this.min = Integer.MAX_VALUE;
+            } else { // we need to update this.min
+                top = stack.pop();
+                this.min = stack.peek(); // update this.min
+                stack.push(top);
+            }
+        }
+    }
+
+    // 3. top
+    public int top() {
+        return stack.peek();
+    }
+    // 4. getMin
+    public int getMin() {
+        return this.min;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        MinStack stack = new MinStack();
+        stack.push(0); 
+        stack.push(1);
+        stack.push(2);
+        stack.push(-3);
+        stack.push(6);
+        stack.pop();
+        stack.pop();
+        System.out.println(stack.getMin());
+        // RandomizedSet set = new RandomizedSet();
+        // set.insert(1);
+        // set.insert(2);
+        // set.insert(3);
+        // System.out.println(set.remove(1));
+        // for (int i = 0; i <= 99; i++) {
+        //     System.out.println(set.getRandom());
+        // }
+        // System.out.println(set.getRandom());
+        // LRUCache cache = new LRUCache(3);
+        // cache.put(1, 1);
+        // cache.put(2, 2);
+        // System.out.println(cache.get(1));
+        // cache.put(3, 3);
+        // System.out.println(cache.get(2)); // 2 is evicted
+        // cache.put(4, 4);
+        // System.out.println(cache.get(1)); // 1 is evicted
+        // System.out.println(cache.get(3)); // 
+        // System.out.println(cache.get(4)); // 
+    }
+}
