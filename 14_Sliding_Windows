@@ -1,0 +1,163 @@
+import java.util.*;
+
+class Trie {
+    class TrieNode {
+        String word;
+        TrieNode[] children;
+        public TrieNode() {
+            this.word = null;
+            this.children = new TrieNode[26];
+        }
+    }
+    TrieNode root;
+    public Trie() {
+        this.root = new TrieNode();
+    }
+
+    // 1. insert
+    public void insert(String word) {
+        TrieNode curr = this.root;
+        for (char c : word.toCharArray()) {
+            // check whether curr.children[c - 'a'] exists? 
+            if (curr.children[c - 'a'] == null) {
+                curr.children[c - 'a'] = new TrieNode();
+            }
+            curr = curr.children[c - 'a'];
+        }
+        curr.word = word;
+    }
+    // 2. search
+    public boolean search(String word) {
+        TrieNode curr = this.root;
+        for (char c : word.toCharArray()) {
+            // check whether curr.children[c - 'a'] exists? 
+            if (curr.children[c - 'a'] == null) {
+                return false;
+            }
+            curr = curr.children[c - 'a'];
+        }
+        return word.equals(curr.word);
+    }
+    // 3. startswith
+    public boolean startswith(String prefix) {
+        TrieNode curr = this.root;
+        for (char c : prefix.toCharArray()) {
+            // check whether curr.children[c - 'a'] exists? 
+            if (curr.children[c - 'a'] == null) {
+                return false;
+            }
+            curr = curr.children[c - 'a'];
+        }
+        return curr != null;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Trie trie = new Trie();
+        // trie.insert("apple");
+        // System.out.println(trie.search("apple"));
+        // System.out.println(trie.search("app"));
+        // System.out.println(trie.startswith("a"));
+        // trie.insert("peach");
+        // System.out.println(trie.startswith("pe"));
+        // int k = 3;
+        // int[] nums = {1, 2, 3, 6, 7, -3, 1};
+        // for (int i : maxSlidingWindow(nums, k)) {
+        //     System.out.println(i);
+        // }
+        // String s = "abcbccaaaa";
+        // System.out.println(lenOf2Distinct(s));
+        String s = "abhgbccc";
+        String t = "abc";
+        System.out.println(minWindow(s, t));
+    }
+
+    // 1. max sliding window
+    public static int[] maxSlidingWindow(int[] nums, int k) {
+        // k = 2, nums = [1, 2, 3, 6, 7, -3, 1], res = [2, 3]
+        int[] res = new int[nums.length - k + 1];
+        LinkedList<Integer> deque = new LinkedList<>();
+        for (int i = 0; i < nums.length; i++) {
+            int curr = nums[i];
+            // 1. remove outdated ones
+            while (!deque.isEmpty() && i - deque.peekLast() >= k) {
+                deque.pollLast();
+            }
+            // 2. now everything is up to date, remove all smaller ones
+            while (!deque.isEmpty() && nums[deque.peekFirst()] <= curr) {
+                deque.pollFirst();
+            }
+            deque.addFirst(i); // correct position of current idx
+            // 3. add to result
+            if (i <= k - 1) {
+                res[0] = nums[deque.peekLast()];
+            } else {
+                res[i - k + 1] = nums[deque.peekLast()];
+            }
+        }
+        return res;
+    }
+
+    // 2. len of longest substring with 2 distinct chars
+    public static int lenOf2Distinct(String s) {
+        int[] map = new int[26]; // only has 'a' to 'z';
+        // maintain a variable window [slow, fast]
+        int slow = 0;
+        int fast = 0;
+        int max = 0;
+        int counter = 0;
+        while (fast < s.length()) {
+            if (map[s.charAt(fast) - 'a']++ == 0) {
+                counter++; // distinct chars incremented
+            }
+            // while there are more than 2 distinct chars, we reduce the size of our window until there are only 2 distinct chars
+            while (counter > 2) {
+                if (map[s.charAt(slow++) - 'a']-- == 1) { // key understanding
+                    counter--;
+                }
+            }
+            // the window now is valid
+            if (max < fast - slow + 1) {
+                max = fast - slow + 1;
+            }
+            fast++;
+        }
+        return max;
+    }
+
+    // 3. minimum string containing all chars
+    public static String minWindow(String s, String t) {
+        int[] map = new int[26]; // only has 'a' to 'z';
+        // 1. initialize map
+        for (char c : t.toCharArray()) {
+            map[c - 'a']++;
+        }
+        int count = t.length();
+        int slow = 0;
+        int fast = 0;
+        int min = Integer.MAX_VALUE;
+        int start = 0;
+        while (fast < s.length()) {
+            if (map[s.charAt(fast) - 'a']-- > 0) {
+                count--;
+            }
+            // while valid - window [slow, fast] contains all chars from t
+            while (count == 0) {
+                // update min length
+                if (min > fast - slow + 1) {
+                    min = fast - slow + 1;
+                    start = slow;
+                }
+                if (map[s.charAt(slow++) - 'a']++ == 0) { // key understanding!
+                    count++;
+                }
+            }
+            fast++;
+        }
+        if (min == Integer.MAX_VALUE) {
+            return "";
+        }
+        return s.substring(start, start + min);
+    }
+}
