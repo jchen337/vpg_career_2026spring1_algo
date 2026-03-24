@@ -1,0 +1,71 @@
+public class Main {
+    public static void main(String[] args) {
+        int[][] edges = {{0, 1}, {1, 2}, {3, 4}, {3, 2}, {4, 1}};
+        System.out.println(validTree(5, edges));
+    }
+
+    // 1. graph valid tree
+    public static boolean validTree(int n, int[][] edges) {
+        // 1. check number of edges 
+        if (edges.length != n - 1) {
+            return false;
+        }
+        // 2. check if this graph has a cycle
+        // implementation of union find
+        // initialization of parent array
+        int[] parent = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+        for (int[] edge : edges) {
+            int i = edge[0];
+            int j = edge[1];
+            int parentOfI = find(i, parent);
+            int parentOfJ = find(j, parent);
+            if (parentOfI == parentOfJ) {
+                return false;
+            }
+            connect(i, j, parent);
+        }
+        return true;
+    }
+
+    // 2. number of connected components
+    public static int countComponets(int n, int[][] edges) {
+        int[] parent = new int[n];
+        // initialization of parent array
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+        int res = n; 
+        for (int[] edge : edges) {
+            int i = edge[0];
+            int j = edge[1];
+            int parentOfI = find(i, parent);
+            int parentOfJ = find(j, parent);
+            if (parentOfI != parentOfJ) {
+                res--;
+            }
+            connect(i, j, parent);
+        }
+        return res;
+    }
+
+    // union find implementation
+    // 1. find function
+    public static int find(int i, int[] parent) {
+        // 1. base case
+        if (parent[i] == i) {
+            return i;
+        }
+        int parentOfI = find(parent[i], parent);
+        parent[i] = parentOfI;
+        return parentOfI;
+    }
+    // 2. connect function
+    public static void connect(int i, int j, int[] parent) {
+        int parentOfI = find(i, parent);
+        int parentOfJ = find(j, parent);
+        parent[parentOfI] = parentOfJ;
+    }
+}
