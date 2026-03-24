@@ -1,0 +1,44 @@
+import java.util.*;
+public class Main {
+    public static void main(String[] args) {
+        int[][] intervals = {{0, 30}, {5, 10}, {15, 20}, {6, 8}};
+        // int[][] intervals = {{7, 10}, {2, 4}, {0, 1}};
+        // System.out.println(canAttend(intervals));
+        System.out.println(minMeetingRooms(intervals));
+    }
+
+    // 1. can attend all meetings
+    public static boolean canAttend(int[][] intervals) {
+        Arrays.sort(intervals, (a, b) -> a[0] - b[0]);
+        for (int i = 1; i < intervals.length; i++) {
+            int[] curr = intervals[i];
+            int[] prev = intervals[i - 1];
+            if (curr[0] < prev[1]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 2. minimum number of meeting rooms
+    public static int minMeetingRooms(int[][] intervals) {
+        // initialize our min-heap
+        PriorityQueue<int[]> heap = new PriorityQueue<int[]>((a, b) -> a[1] - b[1]);
+        Arrays.sort(intervals, (a, b) -> a[0] - b[0]);
+        // add our first meeting room to the min-heap
+        heap.offer(intervals[0]);
+        for (int i = 1; i < intervals.length; i++) {
+            // find out our best room(the room which ends earliest)
+            int[] bestRoom = heap.poll();
+            int[] curr = intervals[i];
+            if (curr[0] < bestRoom[1]) { // we have tried the best room but failed, need new room
+                heap.offer(curr);
+            } else { // the best room is good for the current meeting, we need to modify the bestRoom's ending time to at least cover the whole current meeting!
+                bestRoom[1] = curr[1];
+            }
+            heap.offer(bestRoom);
+        }
+        return heap.size();
+    }
+}
+
